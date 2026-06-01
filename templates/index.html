@@ -158,16 +158,18 @@
                             <td>{{ movie.page }}</td>
                             <td>{{ movie.name }}</td>
                             <td>
-                                <span {% if movie.is_empty %}class="empty-magnet"{% endif %} 
-                                      onclick="copyMagnet({{ movie.id }})" 
+                                <span onclick="copyMagnet({{ movie.id }})" 
                                       class="copy-btn {% if movie.is_empty %}text-danger{% endif %}">
                                     {{ movie.magnet_display }}
                                 </span>
                             </td>
                             <td>{{ movie.save_time }}</td>
                             <td>
-                                <button onclick="showEditModal({{ movie.id }}, '{{ movie.page }}', '{{ movie.name }}', '{{ movie.magnet if movie.magnet else '' }}')" 
-                                        class="btn btn-sm btn-warning">编辑</button>
+                                <button class="btn btn-sm btn-warning edit-btn"
+                                        data-id="{{ movie.id }}"
+                                        data-page="{{ movie.page }}"
+                                        data-name="{{ movie.name }}"
+                                        data-magnet="{{ movie.magnet if movie.magnet else '' }}">编辑</button>
                                 <button onclick="deleteMovie({{ movie.id }})" 
                                         class="btn btn-sm btn-danger">删除</button>
                             </td>
@@ -321,6 +323,14 @@
             new bootstrap.Modal(document.getElementById('editModal')).show();
         }
 
+        document.querySelector('tbody').addEventListener('click', (e) => {
+            const btn = e.target.closest('.edit-btn');
+            if (btn) {
+                const { id, page, name, magnet } = btn.dataset;
+                showEditModal(id, page, name, magnet);
+            }
+        });
+
         async function updateMovie() {
             const id = document.getElementById('editId').value;
             const page = document.getElementById('editPage').value;
@@ -393,6 +403,13 @@
                 location.href = `/?page=${page}`;
             }
         }
+
+        document.getElementById('goPage').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                goToPage();
+            }
+        });
         
         function selectPage(page) {
             if (page) {
