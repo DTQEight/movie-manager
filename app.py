@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 import pandas as pd
 import os
+import shutil
+import glob as glob_mod
 from datetime import datetime
 import zoneinfo
 import threading
@@ -13,6 +15,8 @@ app = Flask(__name__)
 DATA_DIR = os.environ.get('DATA_DIR', os.path.dirname(os.path.abspath(__file__)))
 os.makedirs(DATA_DIR, exist_ok=True)
 EXCEL_FILE = os.path.join(DATA_DIR, 'movies_data.xlsx')
+BACKUP_DIR = os.path.join(DATA_DIR, 'backups')
+MAX_BACKUPS = 10
 data_lock = threading.Lock()
 
 # 版本号
@@ -31,7 +35,19 @@ def load_movies():
         df.to_excel(EXCEL_FILE, index=False)
         return df
 
+def backup_movies():
+    if not os.path.exists(EXCEL_FILE):
+        return
+    os.makedirs(BACKUP_DIR, exist_ok=True)
+    timestamp = get_beijing_time().strftime('%Y%m%d_%H%M%S')
+    backup_file = os.path.join(BACKUP_DIR, f'movies_data_{timestamp}.xlsx')
+    shutil.copy2(EXCEL_FILE, backup_file)
+    backups = sorted(glob_mod.glob(os.path.join(BACKUP_DIR, 'movies_data_*.xlsx')))
+    while len(backups) > MAX_BACKUPS:
+        os.remove(backups.pop(0))
+
 def save_movies(df):
+    backup_movies()
     df.to_excel(EXCEL_FILE, index=False)
 
 def build_movie_list(df):

@@ -7,6 +7,7 @@ __pycache__/
 # 数据文件（不要上传个人数据）
 movies_data.xlsx
 data/
+backups/
 
 # 虚拟环境
 venv/
