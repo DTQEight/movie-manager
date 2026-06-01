@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电影磁力链接管理</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .empty-magnet { color: #dc3545; }
+        .movie-row:hover { background-color: #f8f9fa; }
+        .copy-btn { cursor: pointer; }
+        .copy-btn:hover { color: #0d6efd; }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">🎬 电影磁力链接管理</h1>
+        
+        <!-- 搜索框 -->
+        <form action="/search" method="get" class="mb-4">
+            <div class="input-group">
+                <input type="text" name="keyword" class="form-control" placeholder="搜索电影名..." value="">
+                <button type="submit" class="btn btn-primary">搜索</button>
+            </div>
+        </form>
+
+        <!-- 添加电影表单 -->
+        <div class="card mb-4">
+            <div class="card-header">添加新电影</div>
+            <div class="card-body">
+                <form id="addForm">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">页码</label>
+                            <input type="number" id="page" class="form-control" required>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label">电影名</label>
+                            <input type="text" id="name" class="form-control" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">磁力链接</label>
+                            <input type="text" id="magnet" class="form-control">
+                        </div>
+                        <div class="col-md-1">
+                            <label class="form-label">&nbsp;</label>
+                            <button type="submit" class="btn btn-success form-control">添加</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 分页导航 -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <span class="text-muted">跳转到页码:</span>
+                <input type="number" id="goPage" class="form-control d-inline w-20" style="width: 80px; display: inline;">
+                <button onclick="goToPage()" class="btn btn-sm btn-secondary">跳转</button>
+            </div>
+            <div class="text-center">
+                <span class="text-muted">当前页码:</span>
+                <span class="fw-bold mx-2">{{ current_page }}</span>
+                <span class="text-muted">共 {{ all_page_nums|length }} 个页码</span>
+            </div>
+            <nav>
+                <ul class="pagination justify-content-end mb-0">
+                    <li class="page-item {{ 'disabled' if current_page == 0 or (all_page_nums and current_page == all_page_nums[0]) else '' }}">
+                        <a class="page-link" href="{{ url_for('index', page=all_page_nums[0] if all_page_nums else 1) }}">首页</a>
+                    </li>
+                    <li class="page-item {{ 'disabled' if current_page == 0 or not all_page_nums or current_page == all_page_nums[0] else '' }}">
+                        <a class="page-link" href="{{ url_for('index', page=all_page_nums[all_page_nums.index(current_page)-1] if all_page_nums and current_page != all_page_nums[0] else current_page) }}">上一页</a>
+                    </li>
+                    <li class="page-item {{ 'disabled' if current_page == 0 or not all_page_nums or current_page == all_page_nums[-1] else '' }}">
+                        <a class="page-link" href="{{ url_for('index', page=all_page_nums[all_page_nums.index(current_page)+1] if all_page_nums and current_page != all_page_nums[-1] else current_page) }}">下一页</a>
+                    </li>
+                    <li class="page-item {{ 'disabled' if current_page == 0 or (all_page_nums and current_page == all_page_nums[-1]) else '' }}">
+                        <a class="page-link" href="{{ url_for('index', page=all_page_nums[-1] if all_page_nums else 1) }}">末页</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+
+        <!-- 电影列表表格 -->
+        <div class="card">
+            <div class="card-header">电影列表 (点击磁力链接复制)</div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>序号</th>
+                            <th>页码</th>
+                            <th>电影名</th>
+                            <th>磁力链接</th>
+                            <th>保存时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for movie in movies %}
+                        <tr class="movie-row" data-id="{{ movie.id }}">
+                            <td>{{ movie.id }}</td>
+                            <td>{{ movie.page }}</td>
+                            <td>{{ movie.name }}</td>
+                            <td>
+                                <span {% if movie.is_empty %}class="empty-magnet"{% endif %} 
+                                      onclick="copyMagnet({{ movie.id }})" 
+                                      class="copy-btn {% if movie.is_empty %}text-danger{% endif %}">
+                                    {{ movie.magnet_display }}
+                                </span>
+                            </td>
+                            <td>{{ movie.save_time }}</td>
+                            <td>
+                                <button onclick="showEditModal({{ movie.id }}, '{{ movie.page }}', '{{ movie.name }}', '{{ movie.magnet if movie.magnet else '' }}')" 
+                                        class="btn btn-sm btn-warning">编辑</button>
+                                <button onclick="deleteMovie({{ movie.id }})" 
+                                        class="btn btn-sm btn-danger">删除</button>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted">暂无电影数据</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑模态框 -->
+    <div class="modal fade" id="editModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">编辑电影</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editForm">
+                        <input type="hidden" id="editId">
+                        <div class="mb-3">
+                            <label class="form-label">页码</label>
+                            <input type="number" id="editPage" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">电影名</label>
+                            <input type="text" id="editName" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">磁力链接</label>
+                            <input type="text" id="editMagnet" class="form-control">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="updateMovie()">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 添加电影
+        document.getElementById('addForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const page = document.getElementById('page').value;
+            const name = document.getElementById('name').value;
+            const magnet = document.getElementById('magnet').value;
+            
+            const response = await fetch('/add', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: `page=${page}&name=${encodeURIComponent(name)}&magnet=${encodeURIComponent(magnet)}`
+            });
+            
+            const result = await response.json();
+            alert(result.message);
+            if (result.success) {
+                location.reload();
+            }
+        });
+
+        // 删除电影
+        async function deleteMovie(id) {
+            if (confirm('确定要删除这部电影吗？')) {
+                const response = await fetch(`/delete/${id}`, { method: 'POST' });
+                const result = await response.json();
+                alert(result.message);
+                if (result.success) {
+                    location.reload();
+                }
+            }
+        }
+
+        // 显示编辑模态框
+        function showEditModal(id, page, name, magnet) {
+            document.getElementById('editId').value = id;
+            document.getElementById('editPage').value = page;
+            document.getElementById('editName').value = name;
+            document.getElementById('editMagnet').value = magnet;
+            new bootstrap.Modal(document.getElementById('editModal')).show();
+        }
+
+        // 更新电影
+        async function updateMovie() {
+            const id = document.getElementById('editId').value;
+            const page = document.getElementById('editPage').value;
+            const name = document.getElementById('editName').value;
+            const magnet = document.getElementById('editMagnet').value;
+            
+            const response = await fetch(`/update/${id}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: `page=${page}&name=${encodeURIComponent(name)}&magnet=${encodeURIComponent(magnet)}`
+            });
+            
+            const result = await response.json();
+            alert(result.message);
+            if (result.success) {
+                location.reload();
+            }
+        }
+
+        // 复制磁力链接
+        async function copyMagnet(id) {
+            const response = await fetch(`/copy_magnet/${id}`);
+            const result = await response.json();
+            
+            if (result.success) {
+                navigator.clipboard.writeText(result.magnet).then(() => {
+                    alert('磁力链接已复制到剪贴板！');
+                });
+            } else {
+                alert('磁力链接为空，无法复制');
+            }
+        }
+
+        // 跳转到指定页码
+        function goToPage() {
+            const page = document.getElementById('goPage').value;
+            if (page) {
+                location.href = `/?page=${page}`;
+            }
+        }
+    </script>
+</body>
+</html>
