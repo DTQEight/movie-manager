@@ -101,10 +101,16 @@
         </div>
 
         <!-- 分页导航 -->
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <div>
-                <span class="text-muted">跳转到页码:</span>
-                <input type="number" id="goPage" class="form-control d-inline w-20" style="width: 80px; display: inline;">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-muted">页码选择:</span>
+                <select id="pageSelect" class="form-select form-select-sm" style="width: auto;" onchange="selectPage(this.value)">
+                    {% for p in all_page_nums %}
+                    <option value="{{ p }}" {{ 'selected' if p == current_page else '' }}>{{ p }}</option>
+                    {% endfor %}
+                </select>
+                <span class="text-muted">跳转到:</span>
+                <input type="number" id="goPage" class="form-control form-control-sm d-inline" style="width: 80px;" placeholder="页码">
                 <button onclick="goToPage()" class="btn btn-sm btn-secondary">跳转</button>
             </div>
             <div class="text-center">
@@ -382,6 +388,13 @@
 
         function goToPage() {
             const page = document.getElementById('goPage').value;
+            if (page) {
+                showLoading();
+                location.href = `/?page=${page}`;
+            }
+        }
+        
+        function selectPage(page) {
             if (page) {
                 showLoading();
                 location.href = `/?page=${page}`;
