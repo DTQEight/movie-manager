@@ -120,7 +120,7 @@ def add_movie():
         '保存时间': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     }
     
-    df = df.append(new_movie, ignore_index=True)
+    df = pd.concat([df, pd.DataFrame([new_movie])], ignore_index=True)
     save_movies(df)
     
     return jsonify({'success': True, 'message': '添加成功'})
