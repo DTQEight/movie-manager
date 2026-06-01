@@ -193,6 +193,43 @@ def update_movie(movie_id):
     except Exception as e:
         return jsonify({'success': False, 'message': f'更新失败: {str(e)}'})
 
+@app.route('/reorder', methods=['POST'])
+def reorder_movies():
+    order = request.form.get('order', '')
+    
+    if not order:
+        return jsonify({'success': False, 'message': '排序数据为空'})
+    
+    try:
+        id_list = [int(x) for x in order.split(',')]
+    except (ValueError, TypeError):
+        return jsonify({'success': False, 'message': '排序数据格式错误'})
+    
+    try:
+        with data_lock:
+            df = load_movies()
+            
+            if df.empty:
+                return jsonify({'success': False, 'message': '没有电影数据'})
+            
+            if len(id_list) != len(df):
+                return jsonify({'success': False, 'message': '排序数据数量不匹配'})
+            
+            new_df = pd.DataFrame()
+            for idx, movie_id in enumerate(id_list, 1):
+                row = df[df['序号'] == movie_id]
+                if row.empty:
+                    return jsonify({'success': False, 'message': f'电影记录 {movie_id} 不存在'})
+                row = row.copy()
+                row['序号'] = idx
+                new_df = pd.concat([new_df, row], ignore_index=True)
+            
+            save_movies(new_df)
+        
+        return jsonify({'success': True, 'message': '排序已保存'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'排序失败: {str(e)}'})
+
 @app.route('/copy_magnet/<int:movie_id>')
 def copy_magnet(movie_id):
     try:
