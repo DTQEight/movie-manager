@@ -146,7 +146,8 @@ def add_movie():
         with data_lock:
             df = load_movies()
             
-            new_id = len(df) + 1
+            page_df = df[df['页码'] == page]
+            new_id = int(page_df['序号'].max()) + 1 if not page_df.empty else 1
             new_movie = {
                 '序号': new_id,
                 '页码': page,
@@ -172,7 +173,9 @@ def delete_movie(movie_id):
                 return jsonify({'success': False, 'message': '电影记录不存在'})
             
             df = df[df['序号'] != movie_id]
-            df['序号'] = range(1, len(df) + 1)
+            for pg in df['页码'].unique():
+                mask = df['页码'] == pg
+                df.loc[mask, '序号'] = range(1, mask.sum() + 1)
             save_movies(df)
         
         return jsonify({'success': True, 'message': '删除成功'})
