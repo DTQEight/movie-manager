@@ -13,6 +13,14 @@ DATA_DIR = '/app/data'
 os.makedirs(DATA_DIR, exist_ok=True)
 EXCEL_FILE = os.path.join(DATA_DIR, 'movies_data.xlsx')
 
+# 版本号
+VERSION = "1.0.0"
+try:
+    with open('VERSION', 'r') as f:
+        VERSION = f.read().strip()
+except:
+    pass
+
 def load_movies():
     if os.path.exists(EXCEL_FILE):
         return pd.read_excel(EXCEL_FILE)
@@ -70,7 +78,8 @@ def index():
     return render_template('index.html', 
                           movies=movies, 
                           current_page=page_num, 
-                          all_page_nums=all_page_nums)
+                          all_page_nums=all_page_nums,
+                          version=VERSION)
 
 @app.route('/search')
 def search():
@@ -103,7 +112,7 @@ def search():
             'save_time': row['保存时间']
         })
     
-    return render_template('search.html', movies=movies, keyword=keyword)
+    return render_template('search.html', movies=movies, keyword=keyword, version=VERSION)
 
 @app.route('/add', methods=['POST'])
 def add_movie():
