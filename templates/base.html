@@ -50,7 +50,8 @@
         }
         .drag-handle { user-select: none; }
         .drag-handle:hover { color: #0d6efd; }
-        .sortable-fallback { opacity: 0.9; }
+        .sortable-drag { opacity: 0; }
+        .sortable-fallback { opacity: 0.9; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
         .sortable-chosen { background-color: #e9ecef !important; }
         {% block extra_style %}{% endblock %}
     </style>

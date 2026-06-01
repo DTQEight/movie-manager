@@ -10,7 +10,7 @@ def get_beijing_time():
     return datetime.now(zoneinfo.ZoneInfo("Asia/Shanghai"))
 
 app = Flask(__name__)
-DATA_DIR = '/app/data'
+DATA_DIR = os.environ.get('DATA_DIR', os.path.dirname(os.path.abspath(__file__)))
 os.makedirs(DATA_DIR, exist_ok=True)
 EXCEL_FILE = os.path.join(DATA_DIR, 'movies_data.xlsx')
 data_lock = threading.Lock()
@@ -217,12 +217,18 @@ def reorder_movies():
             page_df = df[df['页码'] == page_num]
             other_df = df[df['页码'] != page_num]
             
-            id_to_row = {row['序号']: row for _, row in page_df.iterrows()}
+            id_to_data = {}
+            for _, row in page_df.iterrows():
+                id_to_data[row['序号']] = row.to_dict()
             
-            if not all(mid in id_to_row for mid in id_list):
+            if not all(mid in id_to_data for mid in id_list):
                 return jsonify({'success': False, 'message': '排序数据包含无效记录'})
             
-            reordered = pd.DataFrame([id_to_row[mid] for mid in id_list])
+            reordered_rows = [id_to_data[mid] for mid in id_list]
+            for idx, row_data in enumerate(reordered_rows, 1):
+                row_data['序号'] = idx
+            
+            reordered = pd.DataFrame(reordered_rows)
             df = pd.concat([other_df, reordered], ignore_index=True)
             save_movies(df)
         

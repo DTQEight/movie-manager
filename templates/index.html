@@ -197,12 +197,15 @@
         if (tbody.rows.length > 0 && !tbody.querySelector('.text-center.text-muted')) {
             new Sortable(tbody, {
                 handle: '.drag-handle',
-                animation: 150,
+                animation: 200,
+                direction: 'vertical',
                 forceFallback: true,
-                fallbackOnBody: true,
-                swapThreshold: 0.65,
+                fallbackTolerance: 3,
                 ghostClass: 'table-active',
-                onEnd: async () => {
+                chosenClass: 'sortable-chosen',
+                dragClass: 'sortable-drag',
+                onEnd: async (evt) => {
+                    if (evt.oldIndex === evt.newIndex) return;
                     const rows = tbody.querySelectorAll('tr[data-id]');
                     const order = Array.from(rows).map(r => r.dataset.id).join(',');
                     showLoading();
