@@ -198,6 +198,7 @@
             new Sortable(tbody, {
                 handle: '.drag-handle',
                 animation: 150,
+                forceFallback: true,
                 ghostClass: 'table-active',
                 onEnd: async () => {
                     const rows = tbody.querySelectorAll('tr[data-id]');
