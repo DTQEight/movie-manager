@@ -40,16 +40,18 @@ def build_movie_list(df):
         magnet = row['磁力链接']
         if pd.isna(magnet) or str(magnet).strip() == '':
             magnet_display = '(空)'
+            magnet = ''
             is_empty = True
         else:
-            magnet_display = magnet[:50] + '...' if len(str(magnet)) > 50 else magnet
+            magnet = str(magnet)
+            magnet_display = magnet[:50] + '...' if len(magnet) > 50 else magnet
             is_empty = False
         
         movies.append({
             'id': row['序号'],
             'page': row['页码'],
-            'name': row['电影名'],
-            'magnet': row['磁力链接'],
+            'name': str(row['电影名']) if not pd.isna(row['电影名']) else '',
+            'magnet': magnet,
             'magnet_display': magnet_display,
             'is_empty': is_empty,
             'save_time': row['保存时间']
