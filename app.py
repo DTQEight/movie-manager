@@ -198,8 +198,8 @@ def reorder_movies():
     order = request.form.get('order', '')
     page = request.form.get('page', '')
     
-    if not order:
-        return jsonify({'success': False, 'message': '排序数据为空'})
+    if not order or not page:
+        return jsonify({'success': False, 'message': '排序数据不完整'})
     
     try:
         id_list = [int(x) for x in order.split(',')]
@@ -207,24 +207,23 @@ def reorder_movies():
         return jsonify({'success': False, 'message': '排序数据格式错误'})
     
     try:
+        page_num = int(page)
         with data_lock:
             df = load_movies()
             
             if df.empty:
                 return jsonify({'success': False, 'message': '没有电影数据'})
             
-            page_df = df[df['页码'] == int(page)] if page else df
-            page_ids = set(page_df['序号'].values)
+            page_df = df[df['页码'] == page_num]
+            other_df = df[df['页码'] != page_num]
             
-            if not page_ids.issubset(set(id_list)):
-                return jsonify({'success': False, 'message': '排序数据不完整'})
+            id_to_row = {row['序号']: row for _, row in page_df.iterrows()}
             
-            idx = 1
-            for movie_id in id_list:
-                if movie_id in page_ids:
-                    df.loc[df['序号'] == movie_id, '序号'] = idx
-                    idx += 1
+            if not all(mid in id_to_row for mid in id_list):
+                return jsonify({'success': False, 'message': '排序数据包含无效记录'})
             
+            reordered = pd.DataFrame([id_to_row[mid] for mid in id_list])
+            df = pd.concat([other_df, reordered], ignore_index=True)
             save_movies(df)
         
         return jsonify({'success': True, 'message': '排序已保存'})

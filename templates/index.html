@@ -199,6 +199,8 @@
                 handle: '.drag-handle',
                 animation: 150,
                 forceFallback: true,
+                fallbackOnBody: true,
+                swapThreshold: 0.65,
                 ghostClass: 'table-active',
                 onEnd: async () => {
                     const rows = tbody.querySelectorAll('tr[data-id]');
