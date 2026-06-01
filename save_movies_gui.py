@@ -191,24 +191,6 @@ class MovieApp:
         """保存电影数据"""
         df.to_excel(EXCEL_FILE, index=False, engine='openpyxl')
     
-    def load_data(self):
-        """加载表格数据"""
-        # 清空现有数据
-        for item in self.tree.get_children():
-            self.tree.delete(item)
-        
-        df = self.load_movies()
-        
-        if not df.empty:
-            for _, row in df.iterrows():
-                self.tree.insert('', tk.END, values=(
-                    row['序号'],
-                    row['页码'],
-                    row['电影名'],
-                    row['磁力链接'],
-                    row['保存时间']
-                ))
-    
     def add_movie(self):
         """添加电影"""
         page = self.page_var.get().strip()
@@ -397,8 +379,7 @@ class MovieApp:
         search_text = self.search_var.get().strip().lower()
         
         if not search_text:
-            self.load_data()
-            self.search_result_var.set("")
+            self.clear_search()
             return
         
         df = self.load_movies()
@@ -406,19 +387,15 @@ class MovieApp:
         if df.empty:
             return
         
-        # 搜索电影名
         mask = df['电影名'].str.lower().str.contains(search_text, na=False)
         result_df = df[mask]
         
-        # 清空现有数据
         for item in self.tree.get_children():
             self.tree.delete(item)
         
-        # 搜索结果显示所有匹配项
         if not result_df.empty:
             for _, row in result_df.iterrows():
                 magnet = row['磁力链接']
-                # 检查磁力链接是否为空或空白
                 if pd.isna(magnet) or str(magnet).strip() == '':
                     magnet_display = '(空)'
                     tags = ('empty_magnet',)
@@ -436,12 +413,21 @@ class MovieApp:
             self.search_result_var.set(f"找到 {len(result_df)} 条记录")
         else:
             self.search_result_var.set("未找到匹配的电影")
+        
+        self.current_page_var.set("搜索")
+        self._set_page_buttons_state('disabled')
     
     def clear_search(self):
         """清除搜索"""
         self.search_var.set("")
-        self.load_data()
         self.search_result_var.set("")
+        self._set_page_buttons_state('normal')
+        self.load_data()
+    
+    def _set_page_buttons_state(self, state):
+        """设置分页按钮状态"""
+        for btn in [self.first_btn, self.prev_btn, self.next_btn, self.last_btn, self.go_to_page_btn]:
+            btn.configure(state=state)
     
     def on_double_click(self, event):
         """双击复制磁力链接"""

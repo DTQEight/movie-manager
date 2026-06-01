@@ -209,4 +209,5 @@ def copy_magnet(movie_id):
         return jsonify({'success': False, 'message': f'获取失败: {str(e)}'})
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    debug = os.environ.get('FLASK_DEBUG', 'false').lower() == 'true'
+    app.run(host='0.0.0.0', port=5000, debug=debug)
