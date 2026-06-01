@@ -2,6 +2,11 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify
 import pandas as pd
 import os
 from datetime import datetime
+import zoneinfo
+
+def get_beijing_time():
+    """获取北京时间"""
+    return datetime.now(zoneinfo.ZoneInfo("Asia/Shanghai"))
 
 app = Flask(__name__)
 DATA_DIR = '/app/data'
@@ -117,7 +122,7 @@ def add_movie():
         '页码': int(page),
         '电影名': name,
         '磁力链接': magnet,
-        '保存时间': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        '保存时间': get_beijing_time().strftime('%Y-%m-%d %H:%M:%S')
     }
     
     df = pd.concat([df, pd.DataFrame([new_movie])], ignore_index=True)
@@ -149,7 +154,7 @@ def update_movie(movie_id):
         df.loc[df['序号'] == movie_id, '电影名'] = name
     if magnet:
         df.loc[df['序号'] == movie_id, '磁力链接'] = magnet
-    df.loc[df['序号'] == movie_id, '保存时间'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    df.loc[df['序号'] == movie_id, '保存时间'] = get_beijing_time().strftime('%Y-%m-%d %H:%M:%S')
     
     save_movies(df)
     
