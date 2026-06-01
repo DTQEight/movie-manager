@@ -196,6 +196,7 @@ def update_movie(movie_id):
 @app.route('/reorder', methods=['POST'])
 def reorder_movies():
     order = request.form.get('order', '')
+    page = request.form.get('page', '')
     
     if not order:
         return jsonify({'success': False, 'message': '排序数据为空'})
@@ -212,19 +213,19 @@ def reorder_movies():
             if df.empty:
                 return jsonify({'success': False, 'message': '没有电影数据'})
             
-            if len(id_list) != len(df):
-                return jsonify({'success': False, 'message': '排序数据数量不匹配'})
+            page_df = df[df['页码'] == int(page)] if page else df
+            page_ids = set(page_df['序号'].values)
             
-            new_df = pd.DataFrame()
-            for idx, movie_id in enumerate(id_list, 1):
-                row = df[df['序号'] == movie_id]
-                if row.empty:
-                    return jsonify({'success': False, 'message': f'电影记录 {movie_id} 不存在'})
-                row = row.copy()
-                row['序号'] = idx
-                new_df = pd.concat([new_df, row], ignore_index=True)
+            if not page_ids.issubset(set(id_list)):
+                return jsonify({'success': False, 'message': '排序数据不完整'})
             
-            save_movies(new_df)
+            idx = 1
+            for movie_id in id_list:
+                if movie_id in page_ids:
+                    df.loc[df['序号'] == movie_id, '序号'] = idx
+                    idx += 1
+            
+            save_movies(df)
         
         return jsonify({'success': True, 'message': '排序已保存'})
     except Exception as e:
