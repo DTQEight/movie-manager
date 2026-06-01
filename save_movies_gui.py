@@ -5,7 +5,7 @@ import os
 from datetime import datetime
 import pyperclip
 
-EXCEL_FILE = 'movies_data.xlsx'
+EXCEL_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'movies_data.xlsx')
 
 class MovieApp:
     def __init__(self, root):

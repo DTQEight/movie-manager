@@ -8,4 +8,5 @@ services:
       - ./data:/app/data
     restart: unless-stopped
     environment:
-      - FLASK_ENV=production
+      - FLASK_DEBUG=false
+      - TZ=Asia/Shanghai
