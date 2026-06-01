@@ -36,7 +36,7 @@
                             <td>{{ movie.page }}</td>
                             <td>{{ movie.name }}</td>
                             <td>
-                                <span onclick="copyMagnet({{ movie.id }})" 
+                                <span onclick="copyMagnet({{ movie.id }}, {{ movie.page }})" 
                                       class="copy-btn {% if movie.is_empty %}text-danger{% endif %}">
                                     {{ movie.magnet_display }}
                                 </span>

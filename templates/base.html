@@ -214,9 +214,9 @@
             }
         }
 
-        async function copyMagnet(id) {
+        async function copyMagnet(id, page) {
             showLoading();
-            const response = await fetch(`/copy_magnet/${id}`);
+            const response = await fetch(`/copy_magnet/${id}/${page}`);
             hideLoading();
             const result = await response.json();
             

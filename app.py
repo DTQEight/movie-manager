@@ -255,13 +255,13 @@ def reorder_movies():
     except Exception as e:
         return jsonify({'success': False, 'message': f'排序失败: {str(e)}'})
 
-@app.route('/copy_magnet/<int:movie_id>')
-def copy_magnet(movie_id):
+@app.route('/copy_magnet/<int:movie_id>/<int:page>')
+def copy_magnet(movie_id, page):
     try:
         with data_lock:
             df = load_movies()
         
-        row = df[df['序号'] == movie_id]
+        row = df[(df['序号'] == movie_id) & (df['页码'] == page)]
         
         if not row.empty:
             magnet = row.iloc[0]['磁力链接']
